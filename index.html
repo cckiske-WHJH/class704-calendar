@@ -295,7 +295,7 @@
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 顯示今日文字（手動組合避免相容性問題）
+    // 顯示今日文字
     const weekdaysText = ['日', '一', '二', '三', '四', '五', '六'];
     const currentYearROC = today.getFullYear() - 1911;
     const currentMonthNum = today.getMonth() + 1;
@@ -305,7 +305,7 @@
     document.getElementById('todayBanner').innerText = 
         `今天是：民國 ${currentYearROC}年${currentMonthNum}月${currentDayNum}日 (${currentWeekdayText})`;
 
-    // 找出即將到來的第一件行程
+    // 找出即將到來的第一件行程（加入防呆：若所有行程都比今天早，則不指定 highlight）
     let highlightedIndex = -1;
     for (let i = 0; i < rawEvents.length; i++) {
         const eventDate = parseROCDate(rawEvents[i].date);
@@ -345,4 +345,77 @@
     for (const [key, group] of Object.entries(monthsMap)) {
         if (group.events.length === 0) continue;
         
-        htmlContent += `<div class="month-section" id="${
+        htmlContent += `<div class="month-section" id="${key}">`;
+        htmlContent += `<div class="month-title">${group.name}</div>`;
+
+        group.events.forEach(ev => {
+            const evDate = parseROCDate(ev.date);
+            const weekdayStr = getWeekdayString(evDate);
+            let cssClass = "event-card";
+
+            if (evDate < today) {
+                cssClass += " past";
+            } else if (ev.globalIndex === highlightedIndex) {
+                cssClass += " highlight";
+            }
+
+            htmlContent += `
+                <div class="${cssClass}">
+                    <div class="event-date">
+                        <span>${ev.date}</span>
+                        <span class="weekday">(${weekdayStr})</span>
+                    </div>
+                    <div class="event-content">${ev.text}</div>
+                </div>
+            `;
+        });
+
+        htmlContent += `</div>`;
+    }
+
+    container.innerHTML = htmlContent;
+
+    // 根據系統真實月份自動決定預設顯示頁籤
+    function autoSelectMonthTab() {
+        const currentMonth = today.getMonth() + 1;
+        let targetTab = 'm9';
+
+        if (currentMonth === 10) targetTab = 'm10';
+        else if (currentMonth === 11) targetTab = 'm11';
+        else if (currentMonth === 12) targetTab = 'm12';
+        else if (currentMonth === 1) targetTab = 'm1';
+        else if (currentMonth >= 9) targetTab = 'm9';
+        
+        switchMonth(targetTab);
+    }
+
+    // 分頁切換邏輯
+    function switchMonth(monthId) {
+        document.querySelectorAll('.month-section').forEach(sec => {
+            sec.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        const targetSection = document.getElementById(monthId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
+        
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => {
+            if (btn.getAttribute('onclick').includes(monthId)) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    // 頁面載入後執行自動切換
+    window.onload = function() {
+        autoSelectMonthTab();
+    };
+</script>
+
+</body>
+</html>
