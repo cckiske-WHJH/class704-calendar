@@ -58,13 +58,18 @@
             text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
         }
 
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
         .today-banner {
             background: rgba(255, 255, 255, 0.25);
             padding: 6px 12px;
             border-radius: 12px;
             font-size: 0.95rem;
             display: inline-block;
-            margin-top: 8px;
+            margin-top: 10px;
             font-weight: bold;
         }
 
@@ -217,11 +222,11 @@
     </header>
 
     <div class="month-tabs" id="monthTabs">
-        <button class="tab-btn" onclick="switchMonth('m9', event)">9月</button>
-        <button class="tab-btn" onclick="switchMonth('m10', event)">10月</button>
-        <button class="tab-btn" onclick="switchMonth('m11', event)">11月</button>
-        <button class="tab-btn" onclick="switchMonth('m12', event)">12月</button>
-        <button class="tab-btn" onclick="switchMonth('m1', event)">1月</button>
+        <button class="tab-btn" onclick="switchMonth('m9')">9月</button>
+        <button class="tab-btn" onclick="switchMonth('m10')">10月</button>
+        <button class="tab-btn" onclick="switchMonth('m11')">11月</button>
+        <button class="tab-btn" onclick="switchMonth('m12')">12月</button>
+        <button class="tab-btn" onclick="switchMonth('m1')">1月</button>
     </div>
 
     <div id="calendarContainer"></div>
@@ -232,7 +237,7 @@
 </div>
 
 <script>
-    // 原始資料（星座符號左右的括弧已移除）
+    // 原始資料
     const rawEvents = [
         { date: "115/09/03", text: "幹部訓練(午休)、紀杰長尾巴♍" },
         { date: "115/09/04", text: "教室佈置競賽開工" },
@@ -290,9 +295,15 @@
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // 顯示今日文字
-    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-    document.getElementById('todayBanner').innerText = `今天是：${today.toLocaleDateString('zh-TW', options)}`;
+    // 顯示今日文字（手動組合避免相容性問題）
+    const weekdaysText = ['日', '一', '二', '三', '四', '五', '六'];
+    const currentYearROC = today.getFullYear() - 1911;
+    const currentMonthNum = today.getMonth() + 1;
+    const currentDayNum = today.getDate();
+    const currentWeekdayText = weekdaysText[today.getDay()];
+    
+    document.getElementById('todayBanner').innerText = 
+        `今天是：民國 ${currentYearROC}年${currentMonthNum}月${currentDayNum}日 (${currentWeekdayText})`;
 
     // 找出即將到來的第一件行程
     let highlightedIndex = -1;
@@ -334,62 +345,4 @@
     for (const [key, group] of Object.entries(monthsMap)) {
         if (group.events.length === 0) continue;
         
-        htmlContent += `<div class="month-section" id="${key}">`;
-        htmlContent += `<div class="month-title">${group.name}</div>`;
-
-        group.events.forEach(ev => {
-            const evDate = parseROCDate(ev.date);
-            const weekdayStr = getWeekdayString(evDate);
-            let cssClass = "event-card";
-
-            if (evDate < today) {
-                cssClass += " past";
-            } else if (ev.globalIndex === highlightedIndex) {
-                cssClass += " highlight";
-            }
-
-            htmlContent += `
-                <div class="${cssClass}">
-                    <div class="event-date">
-                        <span>${ev.date}</span>
-                        <span class="weekday">(${weekdayStr})</span>
-                    </div>
-                    <div class="event-content">${ev.text}</div>
-                </div>
-            `;
-        });
-
-        htmlContent += `</div>`;
-    }
-
-    container.innerHTML = htmlContent;
-
-    // 根據系統真實月份自動決定預設顯示頁籤
-    function autoSelectMonthTab() {
-        const currentMonth = today.getMonth() + 1;
-        let targetTab = 'm9';
-
-        if (currentMonth === 10) targetTab = 'm10';
-        else if (currentMonth === 11) targetTab = 'm11';
-        else if (currentMonth === 12) targetTab = 'm12';
-        else if (currentMonth === 1) targetTab = 'm1';
-        else if (currentMonth >= 9) targetTab = 'm9';
-        
-        switchMonth(targetTab);
-    }
-
-    // 分頁切換邏輯
-    function switchMonth(monthId, clickEvent) {
-        document.querySelectorAll('.month-section').forEach(sec => {
-            sec.classList.remove('active');
-        });
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-
-        const targetSection = document.getElementById(monthId);
-        if (targetSection) {
-            targetSection.classList.add('active');
-        }
-        
-        const buttons = document.querySelectorAll('.tab
+        htmlContent += `<div class="month-section" id="${
