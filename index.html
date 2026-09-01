@@ -208,11 +208,11 @@
     </header>
 
     <div class="month-tabs" id="monthTabs">
-        <button class="tab-btn active" onclick="switchMonth('m9')">9月</button>
-        <button class="tab-btn" onclick="switchMonth('m10')">10月</button>
-        <button class="tab-btn" onclick="switchMonth('m11')">11月</button>
-        <button class="tab-btn" onclick="switchMonth('m12')">12月</button>
-        <button class="tab-btn" onclick="switchMonth('m1')">1月</button>
+        <button class="tab-btn" onclick="switchMonth('m9', event)">9月</button>
+        <button class="tab-btn" onclick="switchMonth('m10', event)">10月</button>
+        <button class="tab-btn" onclick="switchMonth('m11', event)">11月</button>
+        <button class="tab-btn" onclick="switchMonth('m12', event)">12月</button>
+        <button class="tab-btn" onclick="switchMonth('m1', event)">1月</button>
     </div>
 
     <div id="calendarContainer"></div>
@@ -271,7 +271,7 @@
         return new Date(year, month, day);
     }
 
-    // 取得當前真實日期（將時分秒歸零以便比較）
+    // 取得當前真實日期
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -279,7 +279,7 @@
     const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
     document.getElementById('todayBanner').innerText = `今天是：${today.toLocaleDateString('zh-TW', options)}`;
 
-    // 找出即將到來的第一件行程（大於或等於今天的最早行程）
+    // 找出即將到來的第一件行程
     let highlightedIndex = -1;
     for (let i = 0; i < rawEvents.length; i++) {
         const eventDate = parseROCDate(rawEvents[i].date);
@@ -319,7 +319,7 @@
     for (const [key, group] of Object.entries(monthsMap)) {
         if (group.events.length === 0) continue;
         
-        htmlContent += `<div class="month-section ${key === 'm9' ? 'active' : ''}" id="${key}">`;
+        htmlContent += `<div class="month-section" id="${key}">`;
         htmlContent += `<div class="month-title">${group.name}</div>`;
 
         group.events.forEach(ev => {
@@ -345,25 +345,23 @@
 
     container.innerHTML = htmlContent;
 
-    // 自動切換到今天所在的月份分頁
+    // 根據系統真實月份自動決定預設顯示頁籤
     function autoSelectMonthTab() {
-        let currentMonthKey = 'm9';
-        for (const [key, group] of Object.entries(monthsMap)) {
-            for (const ev of group.events) {
-                const evDate = parseROCDate(ev.date);
-                // 如果找到大於等於今天的月份，直接切過去
-                if (evDate >= today) {
-                    currentMonthKey = key;
-                    break;
-                }
-            }
-            if (currentMonthKey !== 'm9') break;
-        }
-        switchMonth(currentMonthKey);
+        const currentMonth = today.getMonth() + 1; // getMonth() 回傳 0-11，需 +1
+        let targetTab = 'm9'; // 預設 9 月
+
+        if (currentMonth === 10) targetTab = 'm10';
+        else if (currentMonth === 11) targetTab = 'm11';
+        else if (currentMonth === 12) targetTab = 'm12';
+        else if (currentMonth === 1) targetTab = 'm1';
+        else if (currentMonth >= 9) targetTab = 'm9'; // 9月或學期開始前預設 9 月
+        
+        // 如果當前真實月份不在行事曆範圍內（例如寒假過後），也可以預設顯示 1 月或最新
+        switchMonth(targetTab);
     }
 
     // 分頁切換邏輯
-    function switchMonth(monthId) {
+    function switchMonth(monthId, clickEvent) {
         document.querySelectorAll('.month-section').forEach(sec => {
             sec.classList.remove('active');
         });
@@ -371,11 +369,12 @@
             btn.classList.remove('active');
         });
 
-        document.getElementById(monthId).classList.add('active');
-        // 找到對應按鈕並加 active
-        event.target && event.target.classList.add('active');
+        const targetSection = document.getElementById(monthId);
+        if (targetSection) {
+            targetSection.classList.add('active');
+        }
         
-        // 確保點擊或自動切換時按鈕正確亮起
+        // 點擊觸發或自動觸發時點亮對應按鈕
         const buttons = document.querySelectorAll('.tab-btn');
         buttons.forEach(btn => {
             if (btn.getAttribute('onclick').includes(monthId)) {
@@ -384,7 +383,7 @@
         });
     }
 
-    // 頁面載入後自動切換至當前月份
+    // 頁面載入後執行自動切換
     window.onload = function() {
         autoSelectMonthTab();
     };
