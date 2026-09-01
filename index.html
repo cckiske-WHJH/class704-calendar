@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文化國中704第一學期行事曆</title>
+    <!-- 引入 Google Fonts 手寫風字體 -->
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -141,12 +142,21 @@
             background: #f0f7ed;
             color: var(--primary-green);
             font-weight: bold;
-            padding: 6px 10px;
+            padding: 6px 8px;
             border-radius: 10px;
-            font-size: 0.9rem;
-            min-width: 85px;
+            font-size: 0.85rem;
+            min-width: 100px;
             text-align: center;
             border: 1px dashed var(--primary-green);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+
+        .event-date .weekday {
+            font-size: 0.75rem;
+            opacity: 0.85;
         }
 
         .event-content {
@@ -207,6 +217,7 @@
         <div class="today-banner" id="todayBanner">載入中...</div>
     </header>
 
+    <!-- 月份切換導覽 -->
     <div class="month-tabs" id="monthTabs">
         <button class="tab-btn" onclick="switchMonth('m9', event)">9月</button>
         <button class="tab-btn" onclick="switchMonth('m10', event)">10月</button>
@@ -215,10 +226,11 @@
         <button class="tab-btn" onclick="switchMonth('m1', event)">1月</button>
     </div>
 
+    <!-- 行事曆內容容器 -->
     <div id="calendarContainer"></div>
 
     <footer>
-        🌸 文化國中 704 班級行事曆 🌸
+        🌸 Pikmin 漫畫風 704 專屬行事曆 🌸
     </footer>
 </div>
 
@@ -269,6 +281,12 @@
         const month = parseInt(parts[1]) - 1;
         const day = parseInt(parts[2]);
         return new Date(year, month, day);
+    }
+
+    // 取得星期幾的文字
+    function getWeekdayString(dateObj) {
+        const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+        return weekdays[dateObj.getDay()];
     }
 
     // 取得當前真實日期
@@ -324,6 +342,7 @@
 
         group.events.forEach(ev => {
             const evDate = parseROCDate(ev.date);
+            const weekdayStr = getWeekdayString(evDate);
             let cssClass = "event-card";
 
             if (evDate < today) {
@@ -334,7 +353,10 @@
 
             htmlContent += `
                 <div class="${cssClass}">
-                    <div class="event-date">${ev.date}</div>
+                    <div class="event-date">
+                        <span>${ev.date}</span>
+                        <span class="weekday">(${weekdayStr})</span>
+                    </div>
                     <div class="event-content">${ev.text}</div>
                 </div>
             `;
@@ -347,16 +369,15 @@
 
     // 根據系統真實月份自動決定預設顯示頁籤
     function autoSelectMonthTab() {
-        const currentMonth = today.getMonth() + 1; // getMonth() 回傳 0-11，需 +1
-        let targetTab = 'm9'; // 預設 9 月
+        const currentMonth = today.getMonth() + 1;
+        let targetTab = 'm9';
 
         if (currentMonth === 10) targetTab = 'm10';
         else if (currentMonth === 11) targetTab = 'm11';
         else if (currentMonth === 12) targetTab = 'm12';
         else if (currentMonth === 1) targetTab = 'm1';
-        else if (currentMonth >= 9) targetTab = 'm9'; // 9月或學期開始前預設 9 月
+        else if (currentMonth >= 9) targetTab = 'm9';
         
-        // 如果當前真實月份不在行事曆範圍內（例如寒假過後），也可以預設顯示 1 月或最新
         switchMonth(targetTab);
     }
 
@@ -374,7 +395,6 @@
             targetSection.classList.add('active');
         }
         
-        // 點擊觸發或自動觸發時點亮對應按鈕
         const buttons = document.querySelectorAll('.tab-btn');
         buttons.forEach(btn => {
             if (btn.getAttribute('onclick').includes(monthId)) {
