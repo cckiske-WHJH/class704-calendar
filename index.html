@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文化國中704第一學期行事曆</title>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f9f0;
+            --card-bg: #ffffff;
+            --primary-green: #52a353;
+            --accent-yellow: #ffeb3b;
+            --highlight-border: #ff9800;
+            --text-main: #333333;
+            --text-sub: #777777;
+            --past-color: #b0bec5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Noto Sans TC', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* 頂部標題與今日資訊 */
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #a8e063, #56ab2f);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 6px 0 #3b7a1f;
+            margin-bottom: 20px;
+            border: 3px dashed #ffffff;
+            position: relative;
+        }
+
+        header h1 {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+        }
+
+        .today-banner {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            display: inline-block;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        /* 月份切換按鈕列 */
+        .month-tabs {
+            display: flex;
+            justify-content: space-around;
+            background: #e2f0d9;
+            padding: 8px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 2px solid #a8e063;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            background: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: var(--primary-green);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: var(--primary-green);
+            color: white;
+            box-shadow: 0 3px 0 #3b7a1f;
+        }
+
+        /* 月曆區塊 */
+        .month-section {
+            display: none;
+        }
+
+        .month-section.active {
+            display: block;
+        }
+
+        .month-title {
+            font-family: 'ZCOOL KuaiLe', cursive;
+            font-size: 1.4rem;
+            color: #3b7a1f;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .month-title::before {
+            content: '🌱';
+        }
+
+        /* 行事曆卡片風格 */
+        .event-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 2px solid #e0e0e0;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            transition: transform 0.2s;
+        }
+
+        .event-date {
+            background: #f0f7ed;
+            color: var(--primary-green);
+            font-weight: bold;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            min-width: 85px;
+            text-align: center;
+            border: 1px dashed var(--primary-green);
+        }
+
+        .event-content {
+            flex-grow: 1;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        /* 狀態樣式：過去日期 */
+        .event-card.past {
+            opacity: 0.45;
+            background: #f9f9f9;
+            border-color: #ddd;
+        }
+        .event-card.past .event-date {
+            background: #eeeeee;
+            color: var(--past-color);
+            border-color: var(--past-color);
+        }
+
+        /* 狀態樣式：即將到來的下一個行程 (Highlight) */
+        .event-card.highlight {
+            border: 3px solid var(--highlight-border);
+            background: #fffdf0;
+            box-shadow: 0 0 12px rgba(255, 152, 0, 0.4);
+            transform: scale(1.02);
+            animation: pulse 1.5s infinite;
+        }
+
+        .event-card.highlight .event-date {
+            background: var(--accent-yellow);
+            color: #d84315;
+            border: 1px solid var(--highlight-border);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+
+        /* 頁尾小裝飾 */
+        footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            font-family: 'ZCOOL KuaiLe', cursive;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>文化國中 704</h1>
+        <p>第一學期班級行事曆</p>
+        <div class="today-banner" id="todayBanner">載入中...</div>
+    </header>
+
+    <div class="month-tabs" id="monthTabs">
+        <button class="tab-btn active" onclick="switchMonth('m9')">9月</button>
+        <button class="tab-btn" onclick="switchMonth('m10')">10月</button>
+        <button class="tab-btn" onclick="switchMonth('m11')">11月</button>
+        <button class="tab-btn" onclick="switchMonth('m12')">12月</button>
+        <button class="tab-btn" onclick="switchMonth('m1')">1月</button>
+    </div>
+
+    <div id="calendarContainer"></div>
+
+    <footer>
+        🌸 Pikmin 漫畫風 704 專屬行事曆 🌸
+    </footer>
+</div>
+
+<script>
+    // 原始資料
+    const rawEvents = [
+        { date: "115/09/03", text: "幹部訓練(午休)、紀杰長尾巴(處女座)" },
+        { date: "115/09/04", text: "教室佈置競賽開工" },
+        { date: "115/09/06", text: "林弘鎰長尾巴(處女座)" },
+        { date: "115/09/14", text: "學習扶助(第8節課)開始" },
+        { date: "115/09/17", text: "親師座談會、流感疫苗家長簽署截止、林妤晴長尾巴(處女座)" },
+        { date: "115/09/21", text: "921防災求生演練" },
+        { date: "115/09/24", text: "新生健康檢查@體育館、發放註冊繳費單" },
+        { date: "115/09/25", text: "中秋節放假" },
+        { date: "115/09/28", text: "教師節放假" },
+        { date: "115/10/01", text: "流感疫苗校園接種、邱子芯長尾巴(天秤座)" },
+        { date: "115/10/09", text: "國慶日放假" },
+        { date: "115/10/12", text: "王辰祐長尾巴(天秤座)" },
+        { date: "115/10/15", text: "註冊繳費期限、第一次段考" },
+        { date: "115/10/16", text: "第一次段考" },
+        { date: "115/10/19", text: "校園口腔健檢" },
+        { date: "115/10/21", text: "社區職場參訪(下午)" },
+        { date: "115/10/26", text: "光復節補假" },
+        { date: "115/10/27", text: "班際球賽開打" },
+        { date: "115/11/03", text: "班際球賽結束" },
+        { date: "115/11/19", text: "社區路跑(第七節)" },
+        { date: "115/11/23", text: "優秀青年評選(午休)、劉憶萱長尾巴(射手座)" },
+        { date: "115/11/25", text: "賴誠恩長尾巴(射手座)" },
+        { date: "115/12/01", text: "第二次段考" },
+        { date: "115/12/02", text: "第二次段考" },
+        { date: "115/12/03", text: "楊佳恩長尾巴(射手座)" },
+        { date: "115/12/12", text: "游尚睿長尾巴(射手座)" },
+        { date: "115/12/16", text: "陳依槿長尾巴(射手座)" },
+        { date: "115/12/25", text: "行憲紀念日放假" },
+        { date: "115/12/31", text: "八年級英語歌唱暨歲末聯歡活動" },
+        { date: "116/01/01", text: "元旦放假" },
+        { date: "116/01/03", text: "林品妍長尾巴(摩羯座)" },
+        { date: "116/01/13", text: "張祐瑄長尾巴(摩羯座)" },
+        { date: "116/01/19", text: "第三次段考" },
+        { date: "116/01/20", text: "第三次段考" },
+        { date: "116/01/21", text: "寒假開始" }
+    ];
+
+    // 民國年份轉西元 Date 物件
+    function parseROCDate(dateStr) {
+        const parts = dateStr.split('/');
+        const year = parseInt(parts[0]) + 1911;
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+        return new Date(year, month, day);
+    }
+
+    // 取得當前真實日期（將時分秒歸零以便比較）
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 顯示今日文字
+    const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    document.getElementById('todayBanner').innerText = `今天是：${today.toLocaleDateString('zh-TW', options)}`;
+
+    // 找出即將到來的第一件行程（大於或等於今天的最早行程）
+    let highlightedIndex = -1;
+    for (let i = 0; i < rawEvents.length; i++) {
+        const eventDate = parseROCDate(rawEvents[i].date);
+        if (eventDate >= today) {
+            highlightedIndex = i;
+            break;
+        }
+    }
+
+    // 將行程依月份分組
+    const monthsMap = {
+        "m9": { name: "9月行程", events: [] },
+        "m10": { name: "10月行程", events: [] },
+        "m11": { name: "11月行程", events: [] },
+        "m12": { name: "12月行程", events: [] },
+        "m1": { name: "1月行程", events: [] }
+    };
+
+    rawEvents.forEach((item, index) => {
+        const monthPart = item.date.split('/')[1];
+        let key = "";
+        if (monthPart === "09") key = "m9";
+        else if (monthPart === "10") key = "m10";
+        else if (monthPart === "11") key = "m11";
+        else if (monthPart === "12") key = "m12";
+        else if (monthPart === "01") key = "m1";
+
+        if (key) {
+            monthsMap[key].events.push({ ...item, globalIndex: index });
+        }
+    });
+
+    // 渲染 HTML
+    const container = document.getElementById('calendarContainer');
+    let htmlContent = '';
+
+    for (const [key, group] of Object.entries(monthsMap)) {
+        if (group.events.length === 0) continue;
+        
+        htmlContent += `<div class="month-section ${key === 'm9' ? 'active' : ''}" id="${key}">`;
+        htmlContent += `<div class="month-title">${group.name}</div>`;
+
+        group.events.forEach(ev => {
+            const evDate = parseROCDate(ev.date);
+            let cssClass = "event-card";
+
+            if (evDate < today) {
+                cssClass += " past";
+            } else if (ev.globalIndex === highlightedIndex) {
+                cssClass += " highlight";
+            }
+
+            htmlContent += `
+                <div class="${cssClass}">
+                    <div class="event-date">${ev.date}</div>
+                    <div class="event-content">${ev.text}</div>
+                </div>
+            `;
+        });
+
+        htmlContent += `</div>`;
+    }
+
+    container.innerHTML = htmlContent;
+
+    // 自動切換到今天所在的月份分頁
+    function autoSelectMonthTab() {
+        let currentMonthKey = 'm9';
+        for (const [key, group] of Object.entries(monthsMap)) {
+            for (const ev of group.events) {
+                const evDate = parseROCDate(ev.date);
+                // 如果找到大於等於今天的月份，直接切過去
+                if (evDate >= today) {
+                    currentMonthKey = key;
+                    break;
+                }
+            }
+            if (currentMonthKey !== 'm9') break;
+        }
+        switchMonth(currentMonthKey);
+    }
+
+    // 分頁切換邏輯
+    function switchMonth(monthId) {
+        document.querySelectorAll('.month-section').forEach(sec => {
+            sec.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        document.getElementById(monthId).classList.add('active');
+        // 找到對應按鈕並加 active
+        event.target && event.target.classList.add('active');
+        
+        // 確保點擊或自動切換時按鈕正確亮起
+        const buttons = document.querySelectorAll('.tab-btn');
+        buttons.forEach(btn => {
+            if (btn.getAttribute('onclick').includes(monthId)) {
+                btn.classList.add('active');
+            }
+        });
+    }
+
+    // 頁面載入後自動切換至當前月份
+    window.onload = function() {
+        autoSelectMonthTab();
+    };
+</script>
+
+</body>
+</html>
